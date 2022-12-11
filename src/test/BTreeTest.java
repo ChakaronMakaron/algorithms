@@ -2,7 +2,7 @@ package test;
 
 import org.junit.Test;
 
-import helper.classes.BTree;
+import structures.BTree;
 
 public class BTreeTest {
     
