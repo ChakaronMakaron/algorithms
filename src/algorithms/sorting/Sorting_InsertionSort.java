@@ -9,7 +9,7 @@ public class Sorting_InsertionSort {
 
     public static List<Integer> insertionSort(List<Integer> listToSort) {
         List<Integer> list = new ArrayList<>(listToSort);
-        for (int i = 2; i < list.size(); i++) {
+        for (int i = 1; i < list.size(); i++) {
             int j = i;
             while (j > 0 && list.get(j - 1) > list.get(j)) {
                 swap(list, j, j - 1);
