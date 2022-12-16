@@ -18,15 +18,19 @@ public class MinHeapTest {
         minHeap.add(30);
         minHeap.add(40);
         minHeap.add(50);
+    }
 
+    @Test
+    public void bubbleUpTest() {
         minHeap.add(2);
         minHeap.add(3);
         minHeap.add(4);
         minHeap.add(5);
+        System.out.println(minHeap);
     }
     
     @Test
-    public void test() {
+    public void extractMinTest() {
         System.out.println("Heap before: " + minHeap);
         while (!minHeap.isEmpty()) {
             System.out.println("Extracting: " + minHeap.extractMin());
