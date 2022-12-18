@@ -1,7 +1,6 @@
 package algorithms.sorting;
 
 import java.util.List;
-import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,11 +15,5 @@ public class Sorting_QuickSort {
         return Stream.of(quicksort(low).stream(), List.of(pivot).stream(), quicksort(high).stream())
             .flatMap(Function.identity())
             .collect(Collectors.toList());
-    }
-
-    public static void main(String[] args) {
-        
-        List<Integer> list = new Random().ints(10, 1, 20).boxed().collect(Collectors.toList());
-        System.out.println(quicksort(list));
     }
 }
