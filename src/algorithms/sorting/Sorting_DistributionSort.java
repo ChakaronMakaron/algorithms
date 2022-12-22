@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// Not done
 public class Sorting_DistributionSort {
     
     public static List<String> distributionSort(List<String> list) {
@@ -36,9 +37,5 @@ public class Sorting_DistributionSort {
         return Stream.concat(Stream.of(outOfComparison), map.values().stream())
             .flatMap(item -> item.stream())
             .collect(Collectors.toList());
-    }
-
-    public static void main(String[] args) {
-        System.out.println(distributionSort(List.of("zhenia", "petro", "andrii", "ivan")));
     }
 }
