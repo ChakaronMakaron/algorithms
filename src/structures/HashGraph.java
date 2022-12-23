@@ -1,9 +1,11 @@
 package structures;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -19,11 +21,13 @@ public class HashGraph<T extends Comparable<T>> {
     private Map<T, Node<T>> nodes;
     private boolean isDirecred;
     private boolean isWeighted;
+    private Map<Node<T>, Node<T>> childrenParents;
 
     public HashGraph(boolean isDirecred, boolean isWeighted) {
         this.isDirecred = isDirecred;
         this.isWeighted = isWeighted;
         this.nodes = new HashMap<>();
+        this.childrenParents = new HashMap<>();
     }
 
     public HashGraph<T> addNode(T value) {
@@ -134,8 +138,12 @@ public class HashGraph<T extends Comparable<T>> {
         runBreadthFirstSearch(startNode, node -> {});
     }
 
+    // Fills map of children and parents 'childrenParents'
+    // this map is used to find shortest path between nodes in NON-WEIGHTED graphs only
     public void runBreadthFirstSearch(Node<T> startNode, Consumer<Node<T>> consumer) {
         if (isNull(startNode)) return;
+
+        childrenParents.put(startNode, null);
 
         Queue<Node<T>> queue = new LinkedList<>();
         queue.add(startNode);
@@ -160,9 +168,42 @@ public class HashGraph<T extends Comparable<T>> {
                     .collect(Collectors.toSet())
                 );
             }
+            
+            neighbouringNodes.forEach(node -> childrenParents.put(node, currentNode));
 
             queue.addAll(neighbouringNodes);
         }
+    }
+    
+    public List<Node<T>> shortestPathBetween(T startNodeValue, T targetNodeValue) {
+        Node<T> startNode = nodes.get(startNodeValue);
+        Node<T> targetNode = nodes.get(targetNodeValue);
+
+        // Return empty
+        if (isNull(startNode) || isNull(targetNode)) return emptyList();
+        
+        List<Node<T>> path = new ArrayList<>();
+        path.add(targetNode);
+
+        if (startNode.equals(targetNode)) return path;
+
+        runBreadthFirstSearch(startNode);
+
+        // Gets parent of target node
+        Node<T> nextNode = childrenParents.get(targetNode);
+
+        // While we have not reached start node
+        while (!nextNode.equals(startNode)) {
+            if (isNull(nextNode)) {
+                return emptyList();
+            } else {
+                path.add(nextNode);
+                nextNode = childrenParents.get(nextNode);
+            }
+        }
+
+        path.add(nextNode);
+        return path;
     }
 
     public static class Node<T extends Comparable<T>> {

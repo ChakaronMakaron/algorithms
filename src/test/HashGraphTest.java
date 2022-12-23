@@ -95,7 +95,7 @@ public class HashGraphTest {
     }
 
     @Test
-    public void runBFS() {
+    public void BFStest() {
         HashGraph<String> linkedGraph = new HashGraph<>(false, true);
 
         linkedGraph
@@ -117,5 +117,30 @@ public class HashGraphTest {
             .addWeightedEdge("E", "F", 35);
 
         linkedGraph.runBreadthFirstSearch(linkedGraph.getNodeByValue("C"), node -> System.out.println(node));
+    }
+
+    @Test
+    public void shortestPathBetweenTestUnweighted() {
+        HashGraph<String> linkedGraph = new HashGraph<>(true, true);
+
+        linkedGraph
+            .addNode("A")
+            .addWeightedEdge("A", "B", 10)
+            .addWeightedEdge("A", "C", 5);
+
+        linkedGraph
+            .addWeightedEdge("B", "D", 20);
+        
+        linkedGraph
+            .addWeightedEdge("C", "D", 30)
+            .addWeightedEdge("C", "E", 25);
+
+        linkedGraph
+            .addWeightedEdge("D", "F", 50);
+
+        linkedGraph
+            .addWeightedEdge("E", "F", 35);
+
+        System.out.println(linkedGraph.shortestPathBetween("F", "E"));
     }
 }
