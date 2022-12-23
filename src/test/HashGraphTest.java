@@ -121,26 +121,28 @@ public class HashGraphTest {
 
     @Test
     public void shortestPathBetweenTestUnweighted() {
-        HashGraph<String> linkedGraph = new HashGraph<>(true, true);
+        HashGraph<String> linkedGraph = new HashGraph<>(true, false);
 
         linkedGraph
             .addNode("A")
-            .addWeightedEdge("A", "B", 10)
-            .addWeightedEdge("A", "C", 5);
+            .addEdge("A", "B")
+            .addEdge("A", "C");
 
         linkedGraph
-            .addWeightedEdge("B", "D", 20);
+            .addEdge("B", "D");
         
         linkedGraph
-            .addWeightedEdge("C", "D", 30)
-            .addWeightedEdge("C", "E", 25);
+            .addEdge("C", "D")
+            .addEdge("C", "E");
 
         linkedGraph
-            .addWeightedEdge("D", "F", 50);
+            .addEdge("D", "F");
 
         linkedGraph
-            .addWeightedEdge("E", "F", 35);
+            .addEdge("E", "F");
 
-        System.out.println(linkedGraph.shortestPathBetween("F", "E"));
+        linkedGraph.removeEdge("C", "E");
+
+        System.out.println(linkedGraph.shortestPathBetween("A", "E"));
     }
 }

@@ -2,6 +2,7 @@ package structures;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.reverse;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -149,11 +150,14 @@ public class HashGraph<T extends Comparable<T>> {
         queue.add(startNode);
 
         Set<Node<T>> processedNodes = new HashSet<>();
+        Set<Node<T>> discoveredNodes = new HashSet<>();
 
         while (!queue.isEmpty()) {
             Node<T> currentNode = queue.poll();
             if (processedNodes.contains(currentNode)) continue;
             processedNodes.add(currentNode);
+            discoveredNodes.add(currentNode);
+
             consumer.accept(currentNode);
 
             Set<Node<T>> neighbouringNodes = currentNode.pointsTo
@@ -169,7 +173,11 @@ public class HashGraph<T extends Comparable<T>> {
                 );
             }
             
-            neighbouringNodes.forEach(node -> childrenParents.put(node, currentNode));
+            neighbouringNodes.stream()
+                .filter(node -> !discoveredNodes.contains(node))
+                .forEach(node -> childrenParents.put(node, currentNode));
+
+            discoveredNodes.addAll(neighbouringNodes);
 
             queue.addAll(neighbouringNodes);
         }
@@ -179,6 +187,14 @@ public class HashGraph<T extends Comparable<T>> {
         Node<T> startNode = nodes.get(startNodeValue);
         Node<T> targetNode = nodes.get(targetNodeValue);
 
+        if (isWeighted) {
+            return null; // TODO Dijkstra's weighted path
+        } else {
+            return getShortestPathNonWeighted(startNode, targetNode);
+        }
+    }
+
+    private List<Node<T>> getShortestPathNonWeighted(Node<T> startNode, Node<T> targetNode) {
         // Return empty
         if (isNull(startNode) || isNull(targetNode)) return emptyList();
         
@@ -193,17 +209,15 @@ public class HashGraph<T extends Comparable<T>> {
         Node<T> nextNode = childrenParents.get(targetNode);
 
         // While we have not reached start node
-        while (!nextNode.equals(startNode)) {
-            if (isNull(nextNode)) {
-                return emptyList();
-            } else {
-                path.add(nextNode);
-                nextNode = childrenParents.get(nextNode);
+        while (true) {
+            if (isNull(nextNode)) return emptyList();
+            path.add(nextNode);
+            if (nextNode.equals(startNode)) {
+                reverse(path);
+                return path;
             }
+            nextNode = childrenParents.get(nextNode);
         }
-
-        path.add(nextNode);
-        return path;
     }
 
     public static class Node<T extends Comparable<T>> {
