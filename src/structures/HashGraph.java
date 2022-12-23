@@ -5,9 +5,14 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class HashGraph<T extends Comparable<T>> {
 
@@ -21,56 +26,60 @@ public class HashGraph<T extends Comparable<T>> {
         this.nodes = new HashMap<>();
     }
 
+    public HashGraph<T> addNode(T value) {
+        if (isNull(nodes.get(value))) {
+            nodes.put(value, new Node<>(value));
+        }
+        return this;
+    }
+
     public Node<T> getNodeByValue(T value) {
         return nodes.get(value);
     }
 
     // For not weighted
-    public HashGraph<T> addEdge(T baseNodeValue, T value) {
-        return addWeightedEdge(baseNodeValue, value, null);
+    public HashGraph<T> addEdge(T sourceNodeValue, T targetNodeValue) {
+        return addWeightedEdge(sourceNodeValue, targetNodeValue, null);
     }
 
     // For weighted
-    public HashGraph<T> addWeightedEdge(T baseNodeValue, T value, Integer weight) {
-        if (isNull(value)) return this;
-        // Graph is non-weighted but weight is present
+    public HashGraph<T> addWeightedEdge(T sourceNodeValue, T targetNodeValue, Integer weight) {
+        // If graph is weighted and weight is null (no weight)
+        if (isWeighted && isNull(weight)) {
+            throw new UnsupportedOperationException("Can't add edge with no weight in weighted graph");
+        }
+        // If graph is non-weighted but weight is present
         if (!isWeighted && nonNull(weight)) {
             throw new UnsupportedOperationException("Can't add edge with weight in non-weighted graph");
         }
-        // Graph is weighted and weight is null (no weight)
-        if (isNull(weight) && isWeighted) {
-            throw new UnsupportedOperationException("Can't add edge with 'null' weight in weighted graph");
-        }
-        // If adding lone node
-        if (isNull(baseNodeValue)) {
-            nodes.put(value, new Node<>(value));
-            return this;
-        }
 
-        Node<T> baseNode = nodes.get(baseNodeValue);
-        if (isNull(baseNode)) {
-            throw new IllegalStateException(format("Base node with value '%s' not found", baseNodeValue));
+        if (isNull(targetNodeValue) || isNull(sourceNodeValue)) {
+            throw new IllegalArgumentException(format("Source node value or target node value is null. Base node: '%s', new node value: '%s'",
+                sourceNodeValue, targetNodeValue));
+        };
+        
+        Node<T> sourceNode = nodes.get(sourceNodeValue);
+        if (isNull(sourceNode)) {
+            throw new IllegalStateException(format("Source node with value '%s' not found", sourceNodeValue));
         }
 
-        Node<T> newNode = nodes.get(value);
-        if (isNull(newNode)) {
-            newNode = new Node<>(value);
+        Node<T> targetNode = nodes.get(targetNodeValue);
+        if (isNull(targetNode)) {
+            targetNode = new Node<>(targetNodeValue);
         }
 
-        nodes.put(value, newNode);
+        nodes.put(targetNodeValue, targetNode);
 
-        Edge<T> linkEdge = new Edge<>(baseNode, newNode, isDirecred, weight);
-        newNode.pointedBy.add(linkEdge);
-        baseNode.pointsTo.add(linkEdge);
+        Edge<T> linkEdge = new Edge<>(sourceNode, targetNode, isDirecred, weight);
+        targetNode.pointedBy.add(linkEdge);
+        sourceNode.pointsTo.add(linkEdge);
 
         return this;
     }
 
     public T removeNode(T nodeValue) {
         Node<T> node = nodes.get(nodeValue);
-        if (isNull(node)) {
-            throw new IllegalStateException(format("Node with value '%s' not found", nodeValue));
-        }
+        if (isNull(node)) return null;
 
         node.pointedBy.stream()
             .forEach(edge -> edge.source.pointsTo.remove(edge));
@@ -104,6 +113,7 @@ public class HashGraph<T extends Comparable<T>> {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
+        result.append("Nodes: " + nodes + "\n");
         nodes.forEach((key, node) -> {
             result.append(node + "\n");
             result.append("Pointed by: " + node.pointedBy + "\n");
@@ -118,6 +128,41 @@ public class HashGraph<T extends Comparable<T>> {
 
     public boolean isWeighted() {
         return isWeighted;
+    }
+
+    public void runBreadthFirstSearch(Node<T> startNode) {
+        runBreadthFirstSearch(startNode, node -> {});
+    }
+
+    public void runBreadthFirstSearch(Node<T> startNode, Consumer<Node<T>> consumer) {
+        if (isNull(startNode)) return;
+
+        Queue<Node<T>> queue = new LinkedList<>();
+        queue.add(startNode);
+
+        Set<Node<T>> processedNodes = new HashSet<>();
+
+        while (!queue.isEmpty()) {
+            Node<T> currentNode = queue.poll();
+            if (processedNodes.contains(currentNode)) continue;
+            processedNodes.add(currentNode);
+            consumer.accept(currentNode);
+
+            Set<Node<T>> neighbouringNodes = currentNode.pointsTo
+                .stream()
+                .map(edge -> edge.destination)
+                .collect(Collectors.toSet());
+
+            if (!isDirecred) {
+                neighbouringNodes.addAll(currentNode.pointedBy
+                    .stream()
+                    .map(edge -> edge.source)
+                    .collect(Collectors.toSet())
+                );
+            }
+
+            queue.addAll(neighbouringNodes);
+        }
     }
 
     public static class Node<T extends Comparable<T>> {
@@ -143,9 +188,13 @@ public class HashGraph<T extends Comparable<T>> {
             return new LinkedList<>(pointedBy);
         }
 
+        public boolean isLone() {
+            return pointedBy.isEmpty() && pointsTo.isEmpty();
+        }
+
         @Override
         public String toString() {
-            return "\"" + value + "\"";
+            return "Node \"" + value + "\"";
         }
 
         @Override
