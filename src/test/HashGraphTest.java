@@ -145,4 +145,59 @@ public class HashGraphTest {
 
         System.out.println(linkedGraph.shortestPathBetween("A", "E"));
     }
+
+    @Test
+    public void dfsTest() {
+        HashGraph<String> linkedGraph = getUnweightedGraph(true);
+        System.out.println(linkedGraph.topoligicalSort("A"));
+        
+    }
+
+    public HashGraph<String> getUnweightedGraph(boolean isDirecred) {
+        HashGraph<String> linkedGraph = new HashGraph<>(isDirecred, false);
+
+        linkedGraph
+            .addNode("A")
+            .addEdge("A", "B")
+            .addEdge("A", "C");
+
+        linkedGraph
+            .addEdge("B", "D");
+        
+        linkedGraph
+            .addEdge("C", "D")
+            .addEdge("C", "E");
+
+        linkedGraph
+            .addEdge("D", "F");
+
+        linkedGraph
+            .addEdge("E", "F");
+
+        return linkedGraph;
+    }
+
+    public HashGraph<String> getWeightedGraph(boolean isDirecred) {
+        HashGraph<String> hashGraph = new HashGraph<>(isDirecred, true);
+
+        hashGraph
+            .addNode("A")
+            .addWeightedEdge("A", "B", 10)
+            .addWeightedEdge("A", "C", 5);
+
+        hashGraph
+            .addWeightedEdge("B", "D", 20);
+        
+        hashGraph
+            .addWeightedEdge("C", "D", 30)
+            .addWeightedEdge("C", "E", 25);
+
+        hashGraph
+            .addWeightedEdge("D", "F", 50);
+
+        hashGraph
+            .addWeightedEdge("E", "F", 35);
+
+        return hashGraph;
+    }
 }

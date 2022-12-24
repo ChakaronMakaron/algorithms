@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -115,24 +116,75 @@ public class HashGraph<T extends Comparable<T>> {
         return null;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append("Nodes: " + nodes + "\n");
-        nodes.forEach((key, node) -> {
-            result.append(node + "\n");
-            result.append("Pointed by: " + node.pointedBy + "\n");
-            result.append("Points to: " + node.pointsTo + "\n");
-        });
-        return result.toString();
-    }
-
     public boolean isDirecred() {
         return isDirecred;
     }
 
     public boolean isWeighted() {
         return isWeighted;
+    }
+
+    public List<Node<T>> topoligicalSort(T startNodeValue) {
+        if (!isDirecred) throw new UnsupportedOperationException("Topological sort is not supported by non-directed graphs");
+
+        Node<T> startNode = nodes.get(startNodeValue);
+        if (isNull(startNode)) return emptyList();
+
+        List<Node<T>> result = new ArrayList<>();
+        runDFS(startNode, result, new HashSet<>());
+        reverse(result);
+        
+        return result;
+    }
+
+    private void runDFS(Node<T> currentNode, List<Node<T>> topologicalOrder, Set<Node<T>> processedNodes) {
+        if (processedNodes.contains(currentNode)) return;
+        processedNodes.add(currentNode);
+
+        Set<Node<T>> neighbouringNodes = currentNode.pointsTo
+            .stream()
+            .map(edge -> edge.destination)
+            .collect(Collectors.toSet());
+
+        neighbouringNodes.stream()
+            .forEach(node -> runDFS(node, topologicalOrder, processedNodes));
+
+        topologicalOrder.add(currentNode);
+    }
+
+    public void runDepthFirstSearchStack(Node<T> startNode, Consumer<Node<T>> consumer) {
+        if (isNull(startNode)) return;
+
+        Set<Node<T>> processedNodes = new HashSet<>();
+        Set<Node<T>> discoveredNodes = new HashSet<>();
+
+        Stack<Node<T>> stack = new Stack<>();
+        stack.add(startNode);
+
+        while (!stack.isEmpty()) {
+            Node<T> currentNode = stack.pop();
+            if (processedNodes.contains(currentNode)) continue;
+
+            processedNodes.add(currentNode);
+            discoveredNodes.add(currentNode);
+
+            consumer.accept(currentNode);
+
+            Set<Node<T>> neighbouringNodes = currentNode.pointsTo
+                .stream()
+                .map(edge -> edge.destination)
+                .collect(Collectors.toSet());
+
+            if (!isDirecred) {
+                neighbouringNodes.addAll(currentNode.pointedBy
+                    .stream()
+                    .map(edge -> edge.source)
+                    .collect(Collectors.toSet())
+                );
+            }
+
+            stack.addAll(neighbouringNodes);
+        }
     }
 
     public void runBreadthFirstSearch(Node<T> startNode) {
@@ -218,6 +270,18 @@ public class HashGraph<T extends Comparable<T>> {
             }
             nextNode = childrenParentsBFS.get(nextNode);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        result.append("Nodes: " + nodes + "\n");
+        nodes.forEach((key, node) -> {
+            result.append(node + "\n");
+            result.append("Pointed by: " + node.pointedBy + "\n");
+            result.append("Points to: " + node.pointsTo + "\n");
+        });
+        return result.toString();
     }
 
     public static class Node<T extends Comparable<T>> {
