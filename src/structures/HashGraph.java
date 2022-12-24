@@ -22,13 +22,13 @@ public class HashGraph<T extends Comparable<T>> {
     private Map<T, Node<T>> nodes;
     private boolean isDirecred;
     private boolean isWeighted;
-    private Map<Node<T>, Node<T>> childrenParents;
+    private Map<Node<T>, Node<T>> childrenParentsBFS;
 
     public HashGraph(boolean isDirecred, boolean isWeighted) {
         this.isDirecred = isDirecred;
         this.isWeighted = isWeighted;
         this.nodes = new HashMap<>();
-        this.childrenParents = new HashMap<>();
+        this.childrenParentsBFS = new HashMap<>();
     }
 
     public HashGraph<T> addNode(T value) {
@@ -144,7 +144,8 @@ public class HashGraph<T extends Comparable<T>> {
     public void runBreadthFirstSearch(Node<T> startNode, Consumer<Node<T>> consumer) {
         if (isNull(startNode)) return;
 
-        childrenParents.put(startNode, null);
+        childrenParentsBFS.clear();
+        childrenParentsBFS.put(startNode, null);
 
         Queue<Node<T>> queue = new LinkedList<>();
         queue.add(startNode);
@@ -175,7 +176,7 @@ public class HashGraph<T extends Comparable<T>> {
             
             neighbouringNodes.stream()
                 .filter(node -> !discoveredNodes.contains(node))
-                .forEach(node -> childrenParents.put(node, currentNode));
+                .forEach(node -> childrenParentsBFS.put(node, currentNode));
 
             discoveredNodes.addAll(neighbouringNodes);
 
@@ -189,9 +190,8 @@ public class HashGraph<T extends Comparable<T>> {
 
         if (isWeighted) {
             return null; // TODO Dijkstra's weighted path
-        } else {
-            return getShortestPathNonWeighted(startNode, targetNode);
         }
+        return getShortestPathNonWeighted(startNode, targetNode);
     }
 
     private List<Node<T>> getShortestPathNonWeighted(Node<T> startNode, Node<T> targetNode) {
@@ -206,7 +206,7 @@ public class HashGraph<T extends Comparable<T>> {
         runBreadthFirstSearch(startNode);
 
         // Gets parent of target node
-        Node<T> nextNode = childrenParents.get(targetNode);
+        Node<T> nextNode = childrenParentsBFS.get(targetNode);
 
         // While we have not reached start node
         while (true) {
@@ -216,7 +216,7 @@ public class HashGraph<T extends Comparable<T>> {
                 reverse(path);
                 return path;
             }
-            nextNode = childrenParents.get(nextNode);
+            nextNode = childrenParentsBFS.get(nextNode);
         }
     }
 
