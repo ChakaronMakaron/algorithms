@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -24,6 +26,10 @@ public class HashGraph<T extends Comparable<T>> {
     private boolean isDirecred;
     private boolean isWeighted;
     private Map<Node<T>, Node<T>> childrenParentsBFS;
+
+    public HashGraph(GraphDirection isDirecred, GraphWeighting isWeighted) {
+        this(isDirecred.value, isWeighted.value);
+    }
 
     public HashGraph(boolean isDirecred, boolean isWeighted) {
         this.isDirecred = isDirecred;
@@ -103,15 +109,33 @@ public class HashGraph<T extends Comparable<T>> {
         Node<T> destinationNode = nodes.get(destinationNodeValue);
         if (isNull(sourceNode) || isNull(destinationNode)) return null;
 
-        Edge<T> edgeBetween = sourceNode.pointsTo.stream()
+        boolean isFoundInDirectSearch = false;
+        Edge<T> linkEdge = sourceNode.pointsTo.stream()
             .filter(edge -> edge.equalsByNodes(sourceNode, destinationNode))
             .findFirst()
             .orElse(null);
+        isFoundInDirectSearch = nonNull(linkEdge);
 
-        if (nonNull(edgeBetween)) {
-            sourceNode.pointsTo.remove(edgeBetween);
-            destinationNode.pointedBy.remove(edgeBetween);
-            return edgeBetween.weight;
+        // For non-directed graph when direction of arguments (nodes) might not be kept
+        boolean isFoundInReversedSearch = false;
+        if (isNull(linkEdge) && !isDirecred) {
+            linkEdge = sourceNode.pointedBy.stream()
+            .filter(edge -> edge.equalsByNodes(sourceNode, destinationNode))
+            .findFirst()
+            .orElse(null);
+            isFoundInReversedSearch = nonNull(linkEdge);
+        }
+
+        if (nonNull(linkEdge)) {
+            if (isFoundInDirectSearch) {
+                sourceNode.pointsTo.remove(linkEdge);
+                destinationNode.pointedBy.remove(linkEdge);
+            }
+            if (isFoundInReversedSearch) {
+                sourceNode.pointedBy.remove(linkEdge);
+                destinationNode.pointsTo.remove(linkEdge);
+            }
+            return linkEdge.weight;
         }
         return null;
     }
@@ -124,6 +148,73 @@ public class HashGraph<T extends Comparable<T>> {
         return isWeighted;
     }
 
+    public boolean isEmpty() {
+        return nodes.size() == 0;
+    }
+
+    public HashGraph<T> getMinimalSpanningTree(Node<T> startNode) {
+        if (isDirecred) throw new UnsupportedOperationException("Not implemented for directed graphs");
+        if (!isWeighted) throw new UnsupportedOperationException("Minimal spanning tree is not supported for non-weigted graphs");
+
+        // Init distances
+        Map<Node<T>, Integer> nodesDistances = new HashMap<>();
+        nodes.values().forEach(node -> nodesDistances.put(new Node<>(node), Integer.MAX_VALUE));
+
+        // Init parents
+        Map<Node<T>, Node<T>> childrenParents = new HashMap<>();
+        
+        HashGraph<T> minTree = new HashGraph<>(isDirecred, isWeighted);
+        if (isEmpty()) return minTree;
+
+        nodes.values().forEach(node -> minTree.addNode(node.value));
+
+        Set<Node<T>> visitedNodes = new HashSet<>();
+
+        Node<T> currentNode = startNode;
+        nodesDistances.put(currentNode, 0);
+        childrenParents.put(currentNode, null);
+
+        while (!visitedNodes.contains(currentNode)) {
+            visitedNodes.add(currentNode);
+
+            Set<Edge<T>> adjacentEdges = new HashSet<>();
+            adjacentEdges.addAll(currentNode.pointsTo);
+            adjacentEdges.addAll(currentNode.pointedBy.stream()
+                .map(edge -> edge.getReversedEdge())
+                .collect(Collectors.toSet()));
+
+            // Updating distances to newly discovered nodes
+            for (Edge<T> edge : adjacentEdges) {
+                Node<T> adjacentNode = edge.destination;
+                Integer adjacentNodeDistance = nodesDistances.get(adjacentNode);
+                if (adjacentNodeDistance > edge.weight && !visitedNodes.contains(adjacentNode)) {
+                    nodesDistances.put(adjacentNode, edge.weight);
+                    childrenParents.put(adjacentNode, currentNode);
+                }
+            }
+
+            // Finding next min distance node
+            int nextMinDistance = Integer.MAX_VALUE;
+            for (Entry<Node<T>, Integer> entry : nodesDistances.entrySet()) {
+                if (!visitedNodes.contains(entry.getKey()) && entry.getValue() < nextMinDistance) {
+                    nextMinDistance = entry.getValue();
+                    currentNode = entry.getKey();
+                }
+            }
+            System.out.println("CurrentMinNode: " + currentNode);
+            System.out.println("CurrentMinEdge: " + nodesDistances.get(currentNode));
+        }
+
+        // Building min tree
+        childrenParents.forEach((child, parent) -> {
+            if (nonNull(parent)) {
+                minTree.addWeightedEdge(parent.value, child.value, nodesDistances.get(child));
+            }
+        });
+
+        return minTree;
+    }
+
     public List<Node<T>> topoligicalSort(T startNodeValue) {
         if (!isDirecred) throw new UnsupportedOperationException("Topological sort is not supported by non-directed graphs");
 
@@ -133,10 +224,11 @@ public class HashGraph<T extends Comparable<T>> {
         List<Node<T>> result = new ArrayList<>();
         runDFS(startNode, result, new HashSet<>());
         reverse(result);
-        
+
         return result;
     }
 
+    // For topological sort
     private void runDFS(Node<T> currentNode, List<Node<T>> topologicalOrder, Set<Node<T>> processedNodes) {
         if (processedNodes.contains(currentNode)) return;
         processedNodes.add(currentNode);
@@ -272,6 +364,23 @@ public class HashGraph<T extends Comparable<T>> {
         }
     }
 
+    /*
+    private Set<Node<T>> getAllNeighbours(Node<T> node) {
+        Set<Node<T>> result = new HashSet<>();
+        result.addAll(
+            node.pointsTo.stream()
+                .map(edge -> edge.destination)
+                .collect(Collectors.toSet())
+        );
+        result.addAll(
+            node.pointedBy.stream()
+                .map(edge -> edge.source)
+                .collect(Collectors.toSet())
+        );
+        return result;
+    }
+    */
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
@@ -293,6 +402,12 @@ public class HashGraph<T extends Comparable<T>> {
             this.value = value;
             this.pointsTo = new LinkedList<>();
             this.pointedBy = new LinkedList<>();
+        }
+
+        private Node(Node<T> anotherNode) {
+            this.value = anotherNode.value;
+            this.pointsTo = new LinkedList<>(anotherNode.pointsTo);
+            this.pointedBy = new LinkedList<>(anotherNode.pointedBy);
         }
 
         public T getValue() {
@@ -325,9 +440,14 @@ public class HashGraph<T extends Comparable<T>> {
             }
             return false;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
     }
 
-    public static class Edge<T extends Comparable<T>> {
+    public static class Edge<T extends Comparable<T>> implements Comparable<Edge<T>> {
         private Node<T> source;
         private Node<T> destination;
         private boolean isDirecred;
@@ -342,6 +462,10 @@ public class HashGraph<T extends Comparable<T>> {
             this.destination = destination;
             this.isDirecred = isDirecred;
             this.weight = weight;
+        }
+
+        private Edge<T> getReversedEdge() {
+            return new Edge<>(destination, source, isDirecred, weight);
         }
 
         public Node<T> getSource() {
@@ -379,6 +503,35 @@ public class HashGraph<T extends Comparable<T>> {
                 return this.source.equals(that.source) && this.destination.equals(that.destination);
             }
             return false;
+        }
+
+        @Override
+        public int compareTo(Edge<T> that) {
+            return this.weight - that.weight;
+        }
+    }
+
+    public enum GraphDirection {
+        DIRECTED(true),
+        NON_DIRECTED(false);
+        private boolean value;
+        private GraphDirection(boolean value) {
+            this.value = value;
+        }
+        public boolean value() {
+            return value;
+        }
+    }
+
+    public enum GraphWeighting {
+        WEIGHTED(true),
+        NON_WEIGHTED(false);
+        private boolean value;
+        private GraphWeighting(boolean value) {
+            this.value = value;
+        }
+        public boolean value() {
+            return value;
         }
     }
 }

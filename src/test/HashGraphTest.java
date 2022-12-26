@@ -1,14 +1,21 @@
 package test;
 
+import static structures.HashGraph.GraphDirection.DIRECTED;
+import static structures.HashGraph.GraphDirection.NON_DIRECTED;
+import static structures.HashGraph.GraphWeighting.NON_WEIGHTED;
+import static structures.HashGraph.GraphWeighting.WEIGHTED;
+
 import org.junit.Test;
 
 import structures.HashGraph;
+import structures.HashGraph.GraphDirection;
 
+@SuppressWarnings("unused")
 public class HashGraphTest {
     
     @Test
     public void removeNodeTest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(true, true);
+        HashGraph<String> linkedGraph = new HashGraph<>(DIRECTED, WEIGHTED);
 
         linkedGraph
             .addEdge(null, "A")
@@ -39,10 +46,10 @@ public class HashGraphTest {
 
     @Test
     public void removeEdgeTest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(true, true);
+        HashGraph<String> linkedGraph = new HashGraph<>(NON_DIRECTED, WEIGHTED);
 
         linkedGraph
-            .addEdge(null, "A")
+            .addNode("A")
             .addWeightedEdge("A", "B", 10)
             .addWeightedEdge("A", "C", 5);
 
@@ -61,14 +68,14 @@ public class HashGraphTest {
 
         System.out.println(linkedGraph);
 
-        linkedGraph.removeEdge("B", "D");
+        linkedGraph.removeEdge("D", "B");
 
         System.out.println(linkedGraph);
     }
 
     @Test
     public void getNodeTest() {
-        HashGraph<String> hashGraph = new HashGraph<>(true, true);
+        HashGraph<String> hashGraph = new HashGraph<>(DIRECTED, WEIGHTED);
 
         hashGraph
             .addNode("A")
@@ -82,7 +89,7 @@ public class HashGraphTest {
 
     @Test
     public void nonWeightedTest() {
-        HashGraph<String> hashGraph = new HashGraph<>(true, false);
+        HashGraph<String> hashGraph = new HashGraph<>(DIRECTED, NON_WEIGHTED);
 
         hashGraph
             .addNode("A")
@@ -96,7 +103,7 @@ public class HashGraphTest {
 
     @Test
     public void BFStest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(false, true);
+        HashGraph<String> linkedGraph = new HashGraph<>(NON_DIRECTED, WEIGHTED);
 
         linkedGraph
             .addNode("A")
@@ -121,7 +128,7 @@ public class HashGraphTest {
 
     @Test
     public void shortestPathBetweenTestUnweighted() {
-        HashGraph<String> linkedGraph = new HashGraph<>(true, false);
+        HashGraph<String> linkedGraph = new HashGraph<>(DIRECTED, NON_WEIGHTED);
 
         linkedGraph
             .addNode("A")
@@ -148,13 +155,31 @@ public class HashGraphTest {
 
     @Test
     public void dfsTest() {
-        HashGraph<String> linkedGraph = getUnweightedGraph(true);
-        System.out.println(linkedGraph.topoligicalSort("A"));
+        HashGraph<String> linkedGraph = getUnweightedGraph(DIRECTED);
+        System.out.println(linkedGraph.topoligicalSort("C"));
         
     }
 
-    public HashGraph<String> getUnweightedGraph(boolean isDirecred) {
-        HashGraph<String> linkedGraph = new HashGraph<>(isDirecred, false);
+    @Test
+    public void primaTest() {
+        HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
+        // System.out.println(linkedGraph.getMinimalSpanningTree(linkedGraph.getNodeByValue("A")));
+
+        HashGraph<String> linkedGraph2 = new HashGraph<>(false, true);
+        linkedGraph2.addNode("A")
+            .addWeightedEdge("A", "B", 8)
+            .addWeightedEdge("A", "C", 16)
+            .addWeightedEdge("A", "D", 7)
+            .addWeightedEdge("B", "E", 7)
+            .addWeightedEdge("C", "E", 3)
+            .addWeightedEdge("D", "E", 12)
+            .addWeightedEdge("E", "F", 8)
+            .addWeightedEdge("E", "G", 2);
+        System.out.println(linkedGraph2.getMinimalSpanningTree(linkedGraph2.getNodeByValue("A")));
+    }
+
+    public HashGraph<String> getUnweightedGraph(GraphDirection isDirecred) {
+        HashGraph<String> linkedGraph = new HashGraph<>(isDirecred, NON_WEIGHTED);
 
         linkedGraph
             .addNode("A")
@@ -177,8 +202,8 @@ public class HashGraphTest {
         return linkedGraph;
     }
 
-    public HashGraph<String> getWeightedGraph(boolean isDirecred) {
-        HashGraph<String> hashGraph = new HashGraph<>(isDirecred, true);
+    public HashGraph<String> getWeightedGraph(GraphDirection isDirecred) {
+        HashGraph<String> hashGraph = new HashGraph<>(isDirecred, WEIGHTED);
 
         hashGraph
             .addNode("A")
