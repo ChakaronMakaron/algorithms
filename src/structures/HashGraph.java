@@ -201,8 +201,6 @@ public class HashGraph<T extends Comparable<T>> {
                     currentNode = entry.getKey();
                 }
             }
-            System.out.println("CurrentMinNode: " + currentNode);
-            System.out.println("CurrentMinEdge: " + nodesDistances.get(currentNode));
         }
 
         // Building min tree

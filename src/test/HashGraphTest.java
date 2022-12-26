@@ -15,25 +15,7 @@ public class HashGraphTest {
     
     @Test
     public void removeNodeTest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(DIRECTED, WEIGHTED);
-
-        linkedGraph
-            .addEdge(null, "A")
-            .addWeightedEdge("A", "B", 10)
-            .addWeightedEdge("A", "C", 5);
-
-        linkedGraph
-            .addWeightedEdge("B", "D", 20);
-        
-        linkedGraph
-            .addWeightedEdge("C", "D", 30)
-            .addWeightedEdge("C", "E", 25);
-
-        linkedGraph
-            .addWeightedEdge("D", "F", 50);
-
-        linkedGraph
-            .addWeightedEdge("E", "F", 35);
+        HashGraph<String> linkedGraph = getWeightedGraph(DIRECTED);
 
         System.out.println(linkedGraph);
 
@@ -46,25 +28,7 @@ public class HashGraphTest {
 
     @Test
     public void removeEdgeTest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(NON_DIRECTED, WEIGHTED);
-
-        linkedGraph
-            .addNode("A")
-            .addWeightedEdge("A", "B", 10)
-            .addWeightedEdge("A", "C", 5);
-
-        linkedGraph
-            .addWeightedEdge("B", "D", 20);
-        
-        linkedGraph
-            .addWeightedEdge("C", "D", 30)
-            .addWeightedEdge("C", "E", 25);
-
-        linkedGraph
-            .addWeightedEdge("D", "F", 50);
-
-        linkedGraph
-            .addWeightedEdge("E", "F", 35);
+        HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
 
         System.out.println(linkedGraph);
 
@@ -103,50 +67,14 @@ public class HashGraphTest {
 
     @Test
     public void BFStest() {
-        HashGraph<String> linkedGraph = new HashGraph<>(NON_DIRECTED, WEIGHTED);
-
-        linkedGraph
-            .addNode("A")
-            .addWeightedEdge("A", "B", 10)
-            .addWeightedEdge("A", "C", 5);
-
-        linkedGraph
-            .addWeightedEdge("B", "D", 20);
-        
-        linkedGraph
-            .addWeightedEdge("C", "D", 30)
-            .addWeightedEdge("C", "E", 25);
-
-        linkedGraph
-            .addWeightedEdge("D", "F", 50);
-
-        linkedGraph
-            .addWeightedEdge("E", "F", 35);
+        HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
 
         linkedGraph.runBreadthFirstSearch(linkedGraph.getNodeByValue("C"), node -> System.out.println(node));
     }
 
     @Test
-    public void shortestPathBetweenTestUnweighted() {
-        HashGraph<String> linkedGraph = new HashGraph<>(DIRECTED, NON_WEIGHTED);
-
-        linkedGraph
-            .addNode("A")
-            .addEdge("A", "B")
-            .addEdge("A", "C");
-
-        linkedGraph
-            .addEdge("B", "D");
-        
-        linkedGraph
-            .addEdge("C", "D")
-            .addEdge("C", "E");
-
-        linkedGraph
-            .addEdge("D", "F");
-
-        linkedGraph
-            .addEdge("E", "F");
+    public void shortestPathBetweenTestUnweightedTest() {
+        HashGraph<String> linkedGraph = getUnweightedGraph(NON_DIRECTED);
 
         linkedGraph.removeEdge("C", "E");
 
@@ -154,16 +82,14 @@ public class HashGraphTest {
     }
 
     @Test
-    public void dfsTest() {
+    public void topologicalSortTest() {
         HashGraph<String> linkedGraph = getUnweightedGraph(DIRECTED);
         System.out.println(linkedGraph.topoligicalSort("C"));
-        
     }
 
     @Test
     public void primaTest() {
         HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
-        // System.out.println(linkedGraph.getMinimalSpanningTree(linkedGraph.getNodeByValue("A")));
 
         HashGraph<String> linkedGraph2 = new HashGraph<>(false, true);
         linkedGraph2.addNode("A")
@@ -175,6 +101,7 @@ public class HashGraphTest {
             .addWeightedEdge("D", "E", 12)
             .addWeightedEdge("E", "F", 8)
             .addWeightedEdge("E", "G", 2);
+
         System.out.println(linkedGraph2.getMinimalSpanningTree(linkedGraph2.getNodeByValue("A")));
     }
 
