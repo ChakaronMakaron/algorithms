@@ -105,6 +105,13 @@ public class HashGraphTest {
         System.out.println(linkedGraph2.getMinimalSpanningTree(linkedGraph2.getNodeByValue("A")));
     }
 
+    @Test
+    public void dijkstraTest() {
+        HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
+
+        System.out.println(linkedGraph.shortestPathBetween("A", "F"));
+    }
+
     public HashGraph<String> getUnweightedGraph(GraphDirection isDirecred) {
         HashGraph<String> linkedGraph = new HashGraph<>(isDirecred, NON_WEIGHTED);
 

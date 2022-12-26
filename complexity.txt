@@ -1,0 +1,3 @@
+Dijkstra: O(n^2)
+Prima: O(mn), m - edges, n - vertices. Based on priority queue O(m + nlog(n)).
+HeapSort: O(nlog(n))

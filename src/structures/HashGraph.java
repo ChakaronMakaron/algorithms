@@ -155,7 +155,7 @@ public class HashGraph<T extends Comparable<T>> {
     public HashGraph<T> getMinimalSpanningTree(Node<T> startNode) {
         if (isDirecred) throw new UnsupportedOperationException("Not implemented for directed graphs");
         if (!isWeighted) throw new UnsupportedOperationException("Minimal spanning tree is not supported for non-weigted graphs");
-
+        // TODO min spanning tree link
         // Init distances
         Map<Node<T>, Integer> nodesDistances = new HashMap<>();
         nodes.values().forEach(node -> nodesDistances.put(new Node<>(node), Integer.MAX_VALUE));
@@ -331,7 +331,7 @@ public class HashGraph<T extends Comparable<T>> {
         Node<T> targetNode = nodes.get(targetNodeValue);
 
         if (isWeighted) {
-            return null; // TODO Dijkstra's weighted path
+            return getShortestPathDijkstra(startNode, targetNode);
         }
         return getShortestPathNonWeighted(startNode, targetNode);
     }
@@ -360,6 +360,65 @@ public class HashGraph<T extends Comparable<T>> {
             }
             nextNode = childrenParentsBFS.get(nextNode);
         }
+    }
+
+    private List<Node<T>> getShortestPathDijkstra(Node<T> startNode, Node<T> targetNode) {
+        // TODO dijkstra link
+        if (isDirecred) throw new UnsupportedOperationException("Not implemented for directed graphs");
+        if (!isWeighted) throw new UnsupportedOperationException("Minimal spanning tree is not supported for non-weigted graphs");
+
+        // Init distances
+        Map<Node<T>, Integer> nodesDistances = new HashMap<>();
+        nodes.values().forEach(node -> nodesDistances.put(new Node<>(node), Integer.MAX_VALUE));
+
+        // Init parents
+        Map<Node<T>, Node<T>> childrenParents = new HashMap<>();
+        
+        List<Node<T>> resultList = new ArrayList<>();
+        if (isEmpty()) return resultList;
+
+        // nodes.values().forEach(node -> minTree.addNode(node.value));
+
+        Set<Node<T>> visitedNodes = new HashSet<>();
+
+        Node<T> currentNode = startNode;
+        nodesDistances.put(currentNode, 0);
+        childrenParents.put(currentNode, null);
+
+        while (!visitedNodes.contains(currentNode)) {
+            visitedNodes.add(currentNode);
+
+            Set<Edge<T>> adjacentEdges = new HashSet<>();
+            adjacentEdges.addAll(currentNode.pointsTo);
+            adjacentEdges.addAll(currentNode.pointedBy.stream()
+                .map(edge -> edge.getReversedEdge())
+                .collect(Collectors.toSet()));
+
+            // Updating distances to newly discovered nodes
+            for (Edge<T> edge : adjacentEdges) {
+                Node<T> adjacentNode = edge.destination;
+                Integer adjacentNodeDistance = nodesDistances.get(adjacentNode);
+                if ((edge.weight + nodesDistances.get(currentNode)) < adjacentNodeDistance && !visitedNodes.contains(adjacentNode)) {
+                    nodesDistances.put(adjacentNode, edge.weight + nodesDistances.get(currentNode));
+                    childrenParents.put(adjacentNode, currentNode);
+                }
+            }
+
+            // Finding next min distance node
+            int nextMinDistance = Integer.MAX_VALUE;
+            for (Entry<Node<T>, Integer> entry : nodesDistances.entrySet()) {
+                if (!visitedNodes.contains(entry.getKey()) && entry.getValue() < nextMinDistance) {
+                    nextMinDistance = entry.getValue();
+                    currentNode = entry.getKey();
+                }
+            }
+        }
+
+        // Building min tree
+        
+        System.out.println("dist: " + nodesDistances);
+        System.out.println("children-parents: " + childrenParents);
+        return resultList;
     }
 
     /*
