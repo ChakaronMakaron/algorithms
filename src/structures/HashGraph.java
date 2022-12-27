@@ -5,6 +5,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.reverse;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static structures.HashGraph.GraphDirection.DIRECTED;
+import static structures.HashGraph.GraphWeighting.WEIGHTED;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -166,6 +168,7 @@ public class HashGraph<T extends Comparable<T>> {
         HashGraph<T> minTree = new HashGraph<>(isDirecred, isWeighted);
         if (isEmpty()) return minTree;
 
+        // Init min tree
         nodes.values().forEach(node -> minTree.addNode(node.value));
 
         Set<Node<T>> visitedNodes = new HashSet<>();
@@ -333,6 +336,7 @@ public class HashGraph<T extends Comparable<T>> {
         if (isWeighted) {
             return getShortestPathDijkstra(startNode, targetNode);
         }
+        runBreadthFirstSearch(startNode);
         return getShortestPathNonWeighted(startNode, targetNode);
     }
 
@@ -345,7 +349,8 @@ public class HashGraph<T extends Comparable<T>> {
 
         if (startNode.equals(targetNode)) return path;
 
-        runBreadthFirstSearch(startNode);
+        // !!! moved to shortestPathBetween()
+        // runBreadthFirstSearch(startNode);
 
         // Gets parent of target node
         Node<T> nextNode = childrenParentsBFS.get(targetNode);
@@ -428,22 +433,55 @@ public class HashGraph<T extends Comparable<T>> {
         return resultList;
     }
 
-    /*
-    private Set<Node<T>> getAllNeighbours(Node<T> node) {
-        Set<Node<T>> result = new HashSet<>();
-        result.addAll(
-            node.pointsTo.stream()
-                .map(edge -> edge.destination)
-                .collect(Collectors.toSet())
-        );
-        result.addAll(
-            node.pointedBy.stream()
-                .map(edge -> edge.source)
-                .collect(Collectors.toSet())
-        );
-        return result;
+    // Copy graph
+    public HashGraph<T> copy() {
+        HashGraph<T> newGraph = new HashGraph<>(isDirecred, isWeighted);
+        Set<Node<T>> addedNodes = new HashSet<>();
+        Set<Edge<T>> addedEdges = new HashSet<>();
+
+        nodes.values().stream().forEach(node -> {
+            if (!addedNodes.contains(node)) {
+                addedNodes.add(node);
+                newGraph.addNode(node.value);
+
+                node.pointsTo.stream().forEach(edge -> {
+                    if (!addedEdges.contains(edge)) {
+                        addedEdges.add(edge);
+                        addedNodes.add(edge.destination);
+                        if (isWeighted) {
+                            newGraph.addWeightedEdge(node.value, edge.destination.value, edge.weight);
+                        } else {
+                            newGraph.addEdge(node.value, edge.destination.value);
+                        }
+                    }
+                });
+
+                node.pointedBy.stream().forEach(edge -> {
+                    if (!addedEdges.contains(edge)) {
+                        addedEdges.add(edge);
+                        addedNodes.add(edge.source);
+                        newGraph.addNode(edge.source.value);
+                        if (isWeighted) {
+                            newGraph.addWeightedEdge(edge.source.value, node.value, edge.weight);
+                        } else {
+                            newGraph.addEdge(edge.source.value, node.value);
+                        }
+                    }
+                });
+            }
+        });
+        return newGraph;
     }
-    */
+
+    // Optimal flow and related
+    public void netFlow(Node<T> source, Node<T> target) {
+        // init residual graph
+        HashGraph<T> residualGraph = new HashGraph<>(DIRECTED, WEIGHTED);
+        nodes.values().forEach(node -> residualGraph.addNode(node.value));
+
+        runBreadthFirstSearch(source);
+
+    }
 
     @Override
     public String toString() {
@@ -526,6 +564,13 @@ public class HashGraph<T extends Comparable<T>> {
             this.destination = destination;
             this.isDirecred = isDirecred;
             this.weight = weight;
+        }
+
+        private Edge(Edge<T> anotherEdge) {
+            this.source = anotherEdge.source;
+            this.destination = anotherEdge.destination;
+            this.isDirecred = anotherEdge.isDirecred;
+            this.weight = anotherEdge.weight;
         }
 
         private Edge<T> getReversedEdge() {

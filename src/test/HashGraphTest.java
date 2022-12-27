@@ -1,5 +1,6 @@
 package test;
 
+import static org.junit.Assert.assertEquals;
 import static structures.HashGraph.GraphDirection.DIRECTED;
 import static structures.HashGraph.GraphDirection.NON_DIRECTED;
 import static structures.HashGraph.GraphWeighting.NON_WEIGHTED;
@@ -117,9 +118,13 @@ public class HashGraphTest {
     }
 
     @Test
-    public void adkjawd() {
-        LinkedHashSet<Integer> set = new LinkedHashSet<>();
-        
+    public void copyGraphTest() {
+        HashGraph<String> graph1 = getWeightedGraph(DIRECTED);
+        HashGraph<String> graph2 = graph1.copy();
+        System.out.println(graph1);
+        System.out.println("-------------");
+        System.out.println(graph2);
+        assertEquals(graph1.toString(), graph2.toString());
     }
 
     public HashGraph<String> getUnweightedGraph(GraphDirection isDirecred) {
