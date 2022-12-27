@@ -5,6 +5,10 @@ import static structures.HashGraph.GraphDirection.NON_DIRECTED;
 import static structures.HashGraph.GraphWeighting.NON_WEIGHTED;
 import static structures.HashGraph.GraphWeighting.WEIGHTED;
 
+import java.util.LinkedHashSet;
+import java.util.NavigableSet;
+import java.util.TreeSet;
+
 import org.junit.Test;
 
 import structures.HashGraph;
@@ -110,6 +114,12 @@ public class HashGraphTest {
         HashGraph<String> linkedGraph = getWeightedGraph(NON_DIRECTED);
 
         System.out.println(linkedGraph.shortestPathBetween("A", "F"));
+    }
+
+    @Test
+    public void adkjawd() {
+        LinkedHashSet<Integer> set = new LinkedHashSet<>();
+        
     }
 
     public HashGraph<String> getUnweightedGraph(GraphDirection isDirecred) {
