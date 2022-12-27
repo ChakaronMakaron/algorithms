@@ -341,7 +341,7 @@ public class HashGraph<T extends Comparable<T>> {
         if (isNull(startNode) || isNull(targetNode)) return emptyList();
         
         List<Node<T>> path = new ArrayList<>();
-        path.add(targetNode);
+        path.add(targetNode); // TODO replace all path.add(node) -> path.add(new Node(node))
 
         if (startNode.equals(targetNode)) return path;
 
@@ -363,7 +363,6 @@ public class HashGraph<T extends Comparable<T>> {
     }
 
     private List<Node<T>> getShortestPathDijkstra(Node<T> startNode, Node<T> targetNode) {
-        // TODO dijkstra link
         if (isDirecred) throw new UnsupportedOperationException("Not implemented for directed graphs");
         if (!isWeighted) throw new UnsupportedOperationException("Minimal spanning tree is not supported for non-weigted graphs");
 
@@ -376,8 +375,6 @@ public class HashGraph<T extends Comparable<T>> {
         
         List<Node<T>> resultList = new ArrayList<>();
         if (isEmpty()) return resultList;
-
-        // nodes.values().forEach(node -> minTree.addNode(node.value));
 
         Set<Node<T>> visitedNodes = new HashSet<>();
 
@@ -394,13 +391,18 @@ public class HashGraph<T extends Comparable<T>> {
                 .map(edge -> edge.getReversedEdge())
                 .collect(Collectors.toSet()));
 
-            // Updating distances to newly discovered nodes
+            // Updating distances to discovered nodes
             for (Edge<T> edge : adjacentEdges) {
                 Node<T> adjacentNode = edge.destination;
-                Integer adjacentNodeDistance = nodesDistances.get(adjacentNode);
-                if ((edge.weight + nodesDistances.get(currentNode)) < adjacentNodeDistance && !visitedNodes.contains(adjacentNode)) {
-                    nodesDistances.put(adjacentNode, edge.weight + nodesDistances.get(currentNode));
-                    childrenParents.put(adjacentNode, currentNode);
+                if (!visitedNodes.contains(adjacentNode)) {
+                    // Node total calculated distance (inluding previous edges to this node)
+                    Integer adjacentNodeDistance = nodesDistances.get(adjacentNode);
+                    // If total calculated distance to node that we are updating from + edge weight
+                    // less than total calculated distance to this node
+                    if ((edge.weight + nodesDistances.get(currentNode)) < adjacentNodeDistance) {
+                        nodesDistances.put(adjacentNode, edge.weight + nodesDistances.get(currentNode));
+                        childrenParents.put(adjacentNode, currentNode);
+                    }
                 }
             }
 
@@ -414,10 +416,15 @@ public class HashGraph<T extends Comparable<T>> {
             }
         }
 
-        // Building min tree
+        currentNode = targetNode;
+
+        while (nonNull(currentNode)) {
+            resultList.add(currentNode);
+            currentNode = childrenParents.get(currentNode);
+        } 
+
+        reverse(resultList);
         
-        System.out.println("dist: " + nodesDistances);
-        System.out.println("children-parents: " + childrenParents);
         return resultList;
     }
 
