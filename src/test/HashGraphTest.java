@@ -118,8 +118,35 @@ public class HashGraphTest {
     }
 
     @Test
+    public void netFlowTest() {
+        HashGraph<String> linkedGraph = new HashGraph<>(NON_DIRECTED, WEIGHTED);
+        linkedGraph.addNode("A")
+            .addWeightedEdge("A", "B", 7)
+            .addWeightedEdge("A", "C", 4)
+            .addWeightedEdge("B", "E", 2)
+            .addWeightedEdge("B", "C", 4)
+            .addWeightedEdge("C", "E", 8)
+            .addWeightedEdge("C", "D", 4)
+            .addWeightedEdge("E", "F", 5)
+            .addWeightedEdge("E", "D", 4)
+            .addWeightedEdge("D", "F", 12);
+
+        System.out.println(linkedGraph.netFlow(linkedGraph.getNodeByValue("A"), linkedGraph.getNodeByValue("F")));
+    }
+
+    @Test
     public void copyGraphTest() {
-        HashGraph<String> graph1 = getWeightedGraph(DIRECTED);
+        HashGraph<String> graph1 = new HashGraph<>(NON_DIRECTED, WEIGHTED);
+        graph1.addNode("A")
+            .addWeightedEdge("A", "B", 7)
+            .addWeightedEdge("A", "C", 4)
+            .addWeightedEdge("B", "E", 2)
+            .addWeightedEdge("B", "C", 4)
+            .addWeightedEdge("C", "E", 8)
+            .addWeightedEdge("C", "D", 4)
+            .addWeightedEdge("E", "F", 5)
+            .addWeightedEdge("E", "D", 4)
+            .addWeightedEdge("D", "F", 12);
         HashGraph<String> graph2 = graph1.copy();
         System.out.println(graph1);
         System.out.println("-------------");

@@ -5,8 +5,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.reverse;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static structures.HashGraph.GraphDirection.DIRECTED;
-import static structures.HashGraph.GraphWeighting.WEIGHTED;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +18,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class HashGraph<T extends Comparable<T>> {
@@ -337,10 +336,10 @@ public class HashGraph<T extends Comparable<T>> {
             return getShortestPathDijkstra(startNode, targetNode);
         }
         runBreadthFirstSearch(startNode);
-        return getShortestPathNonWeighted(startNode, targetNode);
+        return getShortestPathByEdgeAmount(startNode, targetNode);
     }
 
-    private List<Node<T>> getShortestPathNonWeighted(Node<T> startNode, Node<T> targetNode) {
+    private List<Node<T>> getShortestPathByEdgeAmount(Node<T> startNode, Node<T> targetNode) {
         // Return empty
         if (isNull(startNode) || isNull(targetNode)) return emptyList();
         
@@ -436,51 +435,108 @@ public class HashGraph<T extends Comparable<T>> {
     // Copy graph
     public HashGraph<T> copy() {
         HashGraph<T> newGraph = new HashGraph<>(isDirecred, isWeighted);
+        if (nodes.isEmpty()) return newGraph;
+
         Set<Node<T>> addedNodes = new HashSet<>();
         Set<Edge<T>> addedEdges = new HashSet<>();
 
-        nodes.values().stream().forEach(node -> {
-            if (!addedNodes.contains(node)) {
-                addedNodes.add(node);
-                newGraph.addNode(node.value);
+        Queue<Node<T>> queue = new LinkedList<>();
+        queue.add(nodes.values().iterator().next());
+        newGraph.addNode(queue.peek().value);
 
-                node.pointsTo.stream().forEach(edge -> {
-                    if (!addedEdges.contains(edge)) {
-                        addedEdges.add(edge);
-                        addedNodes.add(edge.destination);
-                        if (isWeighted) {
-                            newGraph.addWeightedEdge(node.value, edge.destination.value, edge.weight);
-                        } else {
-                            newGraph.addEdge(node.value, edge.destination.value);
-                        }
-                    }
-                });
+        while (!queue.isEmpty()) {
+            Node<T> currentNode = queue.poll();
+            addedNodes.add(currentNode);
 
-                node.pointedBy.stream().forEach(edge -> {
-                    if (!addedEdges.contains(edge)) {
-                        addedEdges.add(edge);
-                        addedNodes.add(edge.source);
-                        newGraph.addNode(edge.source.value);
-                        if (isWeighted) {
-                            newGraph.addWeightedEdge(edge.source.value, node.value, edge.weight);
-                        } else {
-                            newGraph.addEdge(edge.source.value, node.value);
-                        }
+            currentNode.pointsTo.forEach(edge -> {
+                if (!addedEdges.contains(edge)) {
+                    addedEdges.add(edge);
+                    if (isWeighted) {
+                        newGraph.addWeightedEdge(currentNode.value, edge.destination.value, edge.weight);
+                    } else {
+                        newGraph.addEdge(currentNode.value, edge.destination.value);
                     }
-                });
-            }
-        });
+                }
+            });
+
+            currentNode.pointedBy.forEach(edge -> {
+                if (!addedEdges.contains(edge)) {
+                    addedEdges.add(edge);
+                    newGraph.addNode(edge.source.value);
+                    if (isWeighted) {
+                        newGraph.addWeightedEdge(edge.source.value, currentNode.value, edge.weight);
+                    } else {
+                        newGraph.addEdge(edge.source.value, currentNode.value);
+                    }
+                }
+            });
+
+            queue.addAll(currentNode.pointsTo.stream()
+                .map(edge -> edge.destination)
+                .filter(node -> !addedNodes.contains(node))
+                .collect(Collectors.toList())
+            );
+            queue.addAll(currentNode.pointedBy.stream()
+                .map(edge -> edge.source)
+                .collect(Collectors.toList())
+            );
+        }
+
         return newGraph;
     }
 
     // Optimal flow and related
-    public void netFlow(Node<T> source, Node<T> target) {
+    public int netFlow(Node<T> source, Node<T> target) {
         // init residual graph
-        HashGraph<T> residualGraph = new HashGraph<>(DIRECTED, WEIGHTED);
-        nodes.values().forEach(node -> residualGraph.addNode(node.value));
+        HashGraph<T> residualGraph = this.copy();
 
-        runBreadthFirstSearch(source);
+        int maxFlow = 0;
 
+        while (true) {
+            residualGraph.runBreadthFirstSearch(residualGraph.getNodeByValue(source.value));
+            List<Node<T>> nodesPath = residualGraph.getShortestPathByEdgeAmount(
+                residualGraph.getNodeByValue(source.value),
+                residualGraph.getNodeByValue(target.value)
+            );
+            if (nodesPath.isEmpty()) break;
+            System.out.println("Path: " + nodesPath);
+
+            List<Edge<T>> edgesPath = new ArrayList<>();
+
+            // Edge<T> minCapacityEdgeInPath = new Edge<>(Integer.MAX_VALUE);
+            int minCapacity = Integer.MAX_VALUE;
+
+            for (int i = 1; i < nodesPath.size(); i++) {
+                Node<T> current = nodesPath.get(i);
+                Node<T> prev = nodesPath.get(i - 1);
+                Edge<T> linkEdge = prev.pointsTo.stream()
+                    .filter(edge -> edge.destination.equals(current))
+                    .findFirst()
+                    .orElse(null);
+                edgesPath.add(linkEdge);
+                if (linkEdge.weight < minCapacity) {
+                    minCapacity = linkEdge.weight;
+                }
+            }
+
+            System.out.println("Min capacity found: " + minCapacity);
+
+            for (Edge<T> edge : edgesPath) {
+                edge.weight = edge.weight - minCapacity;
+                System.out.println("Updating edge weight: " + edge);
+            }
+
+            maxFlow += minCapacity;
+
+            for (Edge<T> edge : edgesPath) {
+                if (edge.weight == 0) {
+                    residualGraph.removeEdge(edge.source.value, edge.destination.value);
+                    System.out.println("Removing saturated edge: " + edge);
+                }
+            }
+        }
+
+        return maxFlow;
     }
 
     @Override
@@ -554,6 +610,10 @@ public class HashGraph<T extends Comparable<T>> {
         private Node<T> destination;
         private boolean isDirecred;
         private Integer weight;
+
+        private Edge(Integer weight) {
+            this.weight = weight;
+        }
 
         private Edge(Node<T> source, Node<T> destination, boolean isDirecred) {
             this(source, destination, isDirecred, null);
