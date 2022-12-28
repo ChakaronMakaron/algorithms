@@ -18,7 +18,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Consumer;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class HashGraph<T extends Comparable<T>> {
@@ -485,6 +484,7 @@ public class HashGraph<T extends Comparable<T>> {
         return newGraph;
     }
 
+    // Алгоритм Форда-Фалкерсона
     // Optimal flow and related
     public int netFlow(Node<T> source, Node<T> target) {
         // init residual graph
@@ -519,11 +519,8 @@ public class HashGraph<T extends Comparable<T>> {
                 }
             }
 
-            System.out.println("Min capacity found: " + minCapacity);
-
             for (Edge<T> edge : edgesPath) {
                 edge.weight = edge.weight - minCapacity;
-                System.out.println("Updating edge weight: " + edge);
             }
 
             maxFlow += minCapacity;
@@ -531,7 +528,6 @@ public class HashGraph<T extends Comparable<T>> {
             for (Edge<T> edge : edgesPath) {
                 if (edge.weight == 0) {
                     residualGraph.removeEdge(edge.source.value, edge.destination.value);
-                    System.out.println("Removing saturated edge: " + edge);
                 }
             }
         }
