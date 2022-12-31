@@ -4,18 +4,14 @@ import static java.lang.String.format;
 
 import java.util.Arrays;
 
-public class Backtracking_SudokuSolver {
+public class Backtracking_BrokenSudokuSolver {
 
     private int[][] sudokuBoard;
     private boolean[][] isOccupied;
+    private boolean[][] immutableCells;
     private int freeCells;
     private boolean isSolved = false;
     private boolean abort = false;
-    private int counter = 0;
-
-    public int getCounter() {
-        return counter;
-    }
     
     public int[][] solve(int[][] sudoku) {
         if (sudoku.length != 9) {
@@ -24,13 +20,13 @@ public class Backtracking_SudokuSolver {
         sudokuBoard = sudoku.clone();
         freeCells = countFreeCells();
         isOccupied = getOccupationBoard();
+        immutableCells = getImmutableCells();
         backtrack(0, 0);
         return sudokuBoard;
     }
 
     private void backtrack(int i, int j) {
-        counter++;
-        if (isSolved) return;
+        if (isSolved || abort) return;
         if (freeCells == 0) {
             isSolved = true;
             return;
@@ -38,16 +34,21 @@ public class Backtracking_SudokuSolver {
 
         for (int num = 1; num <= 9; num++) {
             if (i == 0 && j == 0) abort = false;
+
+            boolean isSet = false;
             if (!isOccupied[i][j] && !isInLilSquare(num, i, j) && !isInRow(num, i) && !isInColumn(num, j)) {
                 sudokuBoard[i][j] = num;
+                isSet = true;
                 isOccupied[i][j] = true;
                 freeCells--;
-            } else {
-                if (num == 9) {
-                    abort = true;
-                    return;
-                }
+            }
+            if (!isOccupied[i][j] && num < 9) {
                 continue;
+            }
+
+            if (!isSet && num == 9) {
+                abort = true;
+                return;
             }
 
             if (i + 1 < sudokuBoard.length) {
@@ -60,9 +61,12 @@ public class Backtracking_SudokuSolver {
                 backtrack(i + 1, j + 1);
             }
             
-            if (abort) {
+            if (abort && !immutableCells[i][j]) {
                 isOccupied[i][j] = false;
                 freeCells++;
+                if (i != 0 && j != 0) {
+                    return;
+                }
             }
         }
     }
@@ -116,6 +120,20 @@ public class Backtracking_SudokuSolver {
         return occupationBoard;
     }
 
+    private boolean[][] getImmutableCells() {
+        boolean[][] immutableCells = new boolean[sudokuBoard.length][sudokuBoard.length];
+        for (int i = 0; i < sudokuBoard.length; i++) {
+            for (int j = 0; j < sudokuBoard.length; j++) {
+                if (sudokuBoard[i][j] != 0) {
+                    immutableCells[i][j] = true;
+                } else {
+                    immutableCells[i][j] = false;
+                }
+            }
+        }
+        return immutableCells;
+    }
+
     public static void printArray(int[][] arr) {
         for (int i = 0; i < arr.length; i++) {
             System.out.println(Arrays.toString(arr[i]));
@@ -136,8 +154,7 @@ public class Backtracking_SudokuSolver {
             {0, 5, 0, 0, 0, 0, 6, 0, 0}
         };
 
-        Backtracking_SudokuSolver sudokuSolver = new Backtracking_SudokuSolver();
+        Backtracking_BrokenSudokuSolver sudokuSolver = new Backtracking_BrokenSudokuSolver();
         printArray(sudokuSolver.solve(sudokuBoard));
-        System.out.println(sudokuSolver.getCounter());
     }
 }
