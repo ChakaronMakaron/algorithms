@@ -1,4 +1,4 @@
-package algorithms.misc;
+package algorithms.divide.and.conquer;
 
 import java.util.Collections;
 import java.util.List;

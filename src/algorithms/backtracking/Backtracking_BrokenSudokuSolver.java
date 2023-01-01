@@ -1,4 +1,4 @@
-package algorithms.misc;
+package algorithms.backtracking;
 
 import static java.lang.String.format;
 
