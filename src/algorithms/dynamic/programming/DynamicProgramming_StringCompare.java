@@ -7,17 +7,17 @@ import java.util.List;
 
 public class DynamicProgramming_StringCompare {
  
-    public static int editDist(String str1, String str2, int m, int n) {
+    public static int editDistRecursive(String str1, String str2, int m, int n) {
         if (m == 0) return n;
         if (n == 0) return m;
 
         if (str1.charAt(m - 1) == str2.charAt(n - 1))
-            return editDist(str1, str2, m - 1, n - 1);
+            return editDistRecursive(str1, str2, m - 1, n - 1);
         
         return 1 + min(List.of(
-            editDist(str1, str2, m, n - 1),
-            editDist(str1, str2, m - 1, n),
-            editDist(str1, str2, m - 1, n - 1)
+            editDistRecursive(str1, str2, m, n - 1),
+            editDistRecursive(str1, str2, m - 1, n),
+            editDistRecursive(str1, str2, m - 1, n - 1)
         ));
     }
 
@@ -25,10 +25,10 @@ public class DynamicProgramming_StringCompare {
         String str1 = "you should not";
         String str2 = "thou shalt not";
 
-        System.out.println(editDist(str1, str2, str1.length(), str2.length()));
+        System.out.println(editDistRecursive(str1, str2, str1.length(), str2.length()));
     }
 
-    public static int editDistDP(String str1, String str2) {
+    public static int editDistDynamic(String str1, String str2) {
         str1 = " " + str1;
         str2 = " " + str2;
 
