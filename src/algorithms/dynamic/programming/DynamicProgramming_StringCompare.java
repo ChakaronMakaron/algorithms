@@ -21,13 +21,6 @@ public class DynamicProgramming_StringCompare {
         ));
     }
 
-    public static void main(String args[]) {
-        String str1 = "you should not";
-        String str2 = "thou shalt not";
-
-        System.out.println(editDistRecursive(str1, str2, str1.length(), str2.length()));
-    }
-
     public static int editDistDynamic(String str1, String str2) {
         str1 = " " + str1;
         str2 = " " + str2;
@@ -60,5 +53,12 @@ public class DynamicProgramming_StringCompare {
         for (int[] is : arr) {
             System.out.println(Arrays.toString(is));
         }
+    }
+
+    public static void main(String args[]) {
+        String str1 = "you should not";
+        String str2 = "thou shalt not";
+
+        System.out.println(editDistRecursive(str1, str2, str1.length(), str2.length()));
     }
 }
