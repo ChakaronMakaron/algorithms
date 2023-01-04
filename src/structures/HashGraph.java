@@ -152,6 +152,7 @@ public class HashGraph<T extends Comparable<T>> {
         return nodes.size() == 0;
     }
 
+    // Algoritm Prima
     public HashGraph<T> getMinimalSpanningTree(Node<T> startNode) {
         if (isDirecred) throw new UnsupportedOperationException("Not implemented for directed graphs");
         if (!isWeighted) throw new UnsupportedOperationException("Minimal spanning tree is not supported for non-weigted graphs");
