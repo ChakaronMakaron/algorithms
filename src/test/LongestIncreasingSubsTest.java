@@ -24,12 +24,12 @@ public class LongestIncreasingSubsTest {
 
         Integer[] seq7 = {50, 3, 10, 7, 40, 80, 14, 19, 99, 6, 1, 25, 7, 2, 56, 2};
 
-        assertEquals(5, longestIncSubsRecursive(seq1, seq1.length - 1));
-        assertEquals(1, longestIncSubsRecursive(seq2, seq2.length - 1));
-        assertEquals(7, longestIncSubsRecursive(seq3, seq3.length - 1));
-        assertEquals(2, longestIncSubsRecursive(seq4, seq4.length - 1));
-        assertEquals(3, longestIncSubsRecursive(seq5, seq5.length - 1));
-        assertEquals(1, longestIncSubsRecursive(seq6, seq6.length - 1));
-        assertEquals(5, longestIncSubsRecursive(seq7, seq7.length - 1));
+        assertEquals(5, longestIncSubsRecursive(seq1, 0, seq1.length, Integer.MIN_VALUE));
+        assertEquals(1, longestIncSubsRecursive(seq2, 0, seq2.length, Integer.MIN_VALUE));
+        assertEquals(7, longestIncSubsRecursive(seq3, 0, seq3.length, Integer.MIN_VALUE));
+        assertEquals(2, longestIncSubsRecursive(seq4, 0, seq4.length, Integer.MIN_VALUE));
+        assertEquals(3, longestIncSubsRecursive(seq5, 0, seq5.length, Integer.MIN_VALUE));
+        assertEquals(1, longestIncSubsRecursive(seq6, 0, seq6.length, Integer.MIN_VALUE));
+        assertEquals(6, longestIncSubsRecursive(seq7, 0, seq7.length, Integer.MIN_VALUE));
     }
 }
