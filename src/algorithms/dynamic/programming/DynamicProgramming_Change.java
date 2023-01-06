@@ -34,8 +34,7 @@ public class DynamicProgramming_Change {
         int min = Integer.MAX_VALUE;
 
         for (Integer billValue : bills) {
-            int rest = amount - billValue;
-            min = Math.min(changeRecursiveOptimized(bills, rest, memo) + 1, min);
+            min = Math.min(changeRecursiveOptimized(bills, amount - billValue, memo) + 1, min);
         }
 
         memo.put(amount, min);
